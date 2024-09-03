@@ -5,6 +5,7 @@ from team_assigner import TeamAssigner
 
 # facilitates operations on large arrays of data
 import numpy as np
+import cv2
 
 
 def assign_players_to_teams(frames, tracks):
@@ -17,8 +18,14 @@ def assign_players_to_teams(frames, tracks):
     # for each frame
     for frameNum, players in enumerate(tracks["player"]):
 
+        playerNum = 0
+
         # for each player in the frame
         for playerId, player in players.items():
+
+            playerNum += 1
+            if playerNum == 3:
+                print(f"Frame {frameNum}: Player Count is {playerNum}")
 
             # assign player to a team based on their color
             team = teamAssigner.get_player_team(
@@ -51,6 +58,19 @@ def main():
     tracks = objTracker.track_frames(
         frames, read_stub=True, stub_path="stubs/camera_movement_stub.pkl"
     )
+
+    # save cropped image of a player
+    for trackId, player in tracks["player"][0].items():
+        bbox = player["bbox"]
+        frame = frames[0]
+
+        # crop bbox from frame
+        croppedImg = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
+
+        # save the cropped image
+        cv2.imwrite(f"output_videos/croppedImg.jpg", croppedImg)
+
+        break
 
     # assign each player to a team
     assign_players_to_teams(frames, tracks)

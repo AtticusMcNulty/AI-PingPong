@@ -14,7 +14,7 @@ class TeamAssigner:
         img2D = img.reshape(-1, 3)
 
         # preform KMeans clustering with 2 clusters (background and player colors)
-        kmeans = KMeans(n_clusters=2, init="k-means++", n_init=10)
+        kmeans = KMeans(n_clusters=4, init="k-means++", n_init=1)
         kmeans.fit(img2D)
 
         # return the kmeans model
@@ -27,34 +27,24 @@ class TeamAssigner:
         # get top half of cropped image
         topHalfImg = croppedImg[0 : int(croppedImg.shape[0] / 2), :]
 
-        # get KMeans clustering model for top half of the image
+        # get the KMeans clustering model for the top half of the image
         kmeans = self.get_clustering_model(topHalfImg)
 
-        # get the cluster labels for each pixel
+        # Get the cluster labels and centers (dominant colors)
         labels = kmeans.labels_
+        centers = kmeans.cluster_centers_
 
-        # reshape labels into the original image
+        # reshape the labels to the original image shape
         clusteredImage = labels.reshape(topHalfImg.shape[0], topHalfImg.shape[1])
 
-        # create an array of cluster ids from teh four corners of the image
-        cornerClusters = [
-            clusteredImage[0, 0],
-            clusteredImage[0, -1],
-            clusteredImage[-1, 0],
-            clusteredImage[-1, -1],
-        ]
+        # map each cluster label to its corresponding color
+        clusteredImageRGB = centers[clusteredImage].astype(int)
 
-        # set background cluster id (0 or 1) to the most common corner cluster id
-        nonPlayerCluster = max(set(cornerClusters), key=cornerClusters.count)
+        height, width, _ = clusteredImageRGB.shape
+        centerX, centerY = width // 2, height // 2
+        centerPixelRGB = clusteredImageRGB[centerY, centerX]
 
-        # if background color cluster is 0, player cluster will be 1, and vice versa
-        playerCluster = 1 - nonPlayerCluster
-
-        # get color of player cluster
-        playerColor = kmeans.cluster_centers_[playerCluster]
-
-        # return player color
-        return playerColor
+        return centerPixelRGB
 
     def assign_team_colors(self, frames, tracks):
         playerColors = []

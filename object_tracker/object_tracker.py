@@ -25,10 +25,14 @@ class ObjectTracker:
 
         # loop through frames
         for frame in frames:
-            # use model to predict bounding boxes
-            # conf sets min confidence level, objects below 0.15 conf will be disregarded
-            # predict returns list of Results objects (in this case just 1)
-            detectedFrame = self.model.predict(frame, conf=0.15)[0]
+            """
+            Use model to predict bounding boxes:
+                conf sets min confidence level, objects below 0.15 conf will be disregarded
+                predict returns list of Results objects (in this case just 1)
+                iou (intersection over union) uses nms (non-maximum suppression) to only keep bounding box with the height confidence score
+                    the threshold determines how much overlap is tolerated before removing a bounding box
+            """
+            detectedFrame = self.model.predict(frame, conf=0.15, iou=0.1)[0]
 
             # extract the image with annotations
             # [0] accesses the single Result object from the list

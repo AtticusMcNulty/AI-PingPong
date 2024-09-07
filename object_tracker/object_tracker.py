@@ -1,3 +1,4 @@
+from view_transformer import ViewTransformer
 from ultralytics import YOLO
 import sys
 import supervision as sv
@@ -278,14 +279,30 @@ class ObjectTracker:
 
         return frame
 
-    def detect_ball_hits(self, frames, ballTracks, tableBBox):
-        prevBallY, prevBallY2 = None, None
+    def detect_table_hits(self, frames, ballTracks, tableBBox):
+        prevBallCenters, prevBallBBoxes = [], []
         updatedFrames = []
+        yTol = 4
         tableHits = 0
+        cooldownCounter = 0
+        cooldownTime = 5
 
-        height, width, channels = frames[0].shape
+        height, width, _ = frames[0].shape
+
+        # set bbox ball size
+        fixedBallBBoxSize = 20
+
+        # Determine the fixed ball size by averaging over initial detections
+        for ball in ballTracks:
+            if ball and 1 in ball:
+                fixedBallBBoxSize = ball[1]["bbox"][3] - ball[1]["bbox"][1]
+                break
 
         for frameNum, frame in enumerate(frames):
+            # decrease the cooldown counter if it's active
+            if cooldownCounter > 0:
+                cooldownCounter -= 1
+
             if not ballTracks[frameNum] or 1 not in ballTracks[frameNum]:
                 cv2.putText(
                     frame,
@@ -299,58 +316,57 @@ class ObjectTracker:
                 updatedFrames.append(frame)
                 continue
 
+            # get ball bbox size, and normalize center
             ballBBox = ballTracks[frameNum][1]["bbox"]
             ballCenter = [
-                (ballBBox[0] + ballBBox[2]) / 2,  # x-coordinate
-                (ballBBox[1] + ballBBox[3]) / 2,  # y-coordinate
+                (ballBBox[0] + fixedBallBBoxSize / 2),
+                (ballBBox[1] + fixedBallBBoxSize / 2),
             ]
 
-            # if ball center is within the table's bounding box
-            if (
-                tableBBox[0] <= ballCenter[0] <= tableBBox[2]
-                and tableBBox[1] <= ballCenter[1] <= tableBBox[3]
-            ):
-                curIncreasing, prevDecreasing = False, False
+            cv2.circle(
+                frame,
+                (int(ballCenter[0]), int(ballCenter[1])),
+                3,
+                (0, 255, 0),
+                2,
+            )
 
-                # if ball has been detected in frame
-                if len(ballTracks[frameNum]) > 0:
+            # append current ball position to the list
+            prevBallCenters.append(ballCenter)
+            prevBallBBoxes.append(ballBBox)
 
-                    # if prevBallY2 is None
-                    if prevBallY2 == None:
-                        # set it to the ball y-val of the current frame
-                        prevBallY2 = (ballBBox[1] + ballBBox[3]) / 2
+            # smooth the ball bbox size over time (moving average)
+            if len(prevBallBBoxes) > 5:
+                fixedBallBBoxSize = np.mean(
+                    [bbox[3] - bbox[1] for bbox in prevBallBBoxes[-5:]]
+                )
 
-                    # if prevBallY is None
-                    elif prevBallY == None:
-                        # set it to the ball y-val of the current frame
-                        prevBallY = (ballBBox[1] + ballBBox[3]) / 2
+            # keep only the last 3 positions (or adjust the number based on testing)
+            if len(prevBallCenters) > 3:
+                prevBallCenters.pop(0)
 
-                    # if prevBallY and prevBallY2 have been defined
-                    else:
-                        # get the ball y-val of the current frame
-                        curBallY = (ballBBox[1] + ballBBox[3]) / 2
+            # ensure there are enough positions to check
+            if len(prevBallCenters) == 3:
+                # (prev - prev2) > 0
+                descending = (prevBallCenters[1][1] - prevBallCenters[0][1] + yTol) > 0
+                # (prev - cur) > 0
+                ascending = (prevBallCenters[1][1] - prevBallCenters[2][1] + yTol) > 0
 
-                        tolerance = 1
-                        # if current y-val is less than prev y-val, ball is increasing
-                        curIncreasing = (curBallY - tolerance) < prevBallY
-                        # if prev y-val is greater than prev2 y-val, ball is decreasing
-                        prevDecreasing = (prevBallY2 - tolerance) < prevBallY
+                # if the ball was descending and then ascending
+                if descending and ascending and not cooldownCounter > 0:
+                    # if the ball is within the table's bounding box
+                    if (
+                        tableBBox[0] <= prevBallCenters[1][0] <= tableBBox[2]
+                        and tableBBox[1] <= prevBallCenters[1][1] <= tableBBox[3]
+                    ):
+                        ballTracks[frameNum][1]["ballHit"] = [
+                            int(ballCenter[0]),
+                            int(ballCenter[1]),
+                        ]
+                        tableHits += 1
+                        cooldownCounter = cooldownTime
 
-                        # set new prevs
-                        prevBallY2 = prevBallY
-                        prevBallY = curBallY
-
-                # if ball is increasing in height after decreasing in height
-                if curIncreasing and prevDecreasing:
-                    ballTracks[frameNum][1]["ballHit"] = (
-                        int(ballCenter[0]),
-                        int(ballCenter[1]),
-                    )
-                    tableHits += 1
-
-                else:
-                    ballTracks[frameNum]["ballHit"] = None
-
+            # display the number of table hits on the frame
             cv2.putText(
                 frame,
                 f"Table Hits: {tableHits}",
@@ -391,27 +407,28 @@ class ObjectTracker:
         averageNetBBox = (totalNetBBox / netCounter).tolist()
         averageTableBBox = (totalTableBBox / tableCounter).tolist()
 
-        playerHits = [0, 0]
+        # draw table hits
+        frames = self.detect_table_hits(frames, tracks["ball"], averageTableBBox)
 
-        # init previous frame player states
-        prevPlayerStates = {1: None, 2: None}
+        # define vars to store:
+        # player hits
+        # previous ball in player states
+        # ball hit positions across frames
+        playerHits = [0, 0]
         ballInPlayerStates = {1: False, 2: False}
+        ballHitPositions = []
+
+        # init view transformer
+        viewTransformer = ViewTransformer()
 
         # for each frame
         for frameNum, frame in enumerate(frames):
             # extract object dicts corresponding to the current frame
             ballTracks = tracks["ball"][frameNum]
             playerTracks = tracks["player"][frameNum]
-            racketTracks = tracks["racket"][frameNum]
 
             frame = self.draw_square(frame, averageNetBBox, (0, 0, 255))
             frame = self.draw_square(frame, averageTableBBox, (0, 255, 0))
-
-            """
-            for racketId, racket in racketTracks.items():
-                if racket["bbox"]:
-                    frame = self.draw_triangle(frame, racket["bbox"], (255, 0, 0))
-            """
 
             for playerId, player in playerTracks.items():
                 if player["bbox"]:
@@ -421,35 +438,49 @@ class ObjectTracker:
 
                     # check if player had the ball in the previous frame
                     team = player["team"]
-                    prevPlayer = prevPlayerStates[team]
 
                     # determine if the ball is within the player's bounding box
                     ballInBBox = False
-                    for ballId, ball in ballTracks.items():
-                        if ball["bbox"] is not None:
-                            ballInBBox = self.is_ball_in_player_bbox(
-                                player, ball["bbox"]
-                            )
-                            if ballInBBox and not ballInPlayerStates[team]:
-                                # ball just entered the player's bounding box
-                                playerHits[team - 1] += 1
-                                ballInPlayerStates[team] = True
-                            elif not ballInBBox and ballInPlayerStates[team]:
-                                # ball just left the player's bounding box
-                                ballInPlayerStates[team] = False
 
-                            self.draw_triangle(frame, ball["bbox"], (255, 140, 0))
+                    # if ball exists in cur frame
+                    if len(ballTracks) > 0:
+                        # check if ball is in player bbox
+                        ballInBBox = self.is_ball_in_player_bbox(
+                            player, ballTracks[1]["bbox"]
+                        )
 
-                # update previous state for the current team
-                prevPlayerStates[team] = player
+                        # if ball is in player bbox and not in it previously
+                        if ballInBBox and not ballInPlayerStates[team]:
+                            # ball just entered the player's bounding box
+                            playerHits[team - 1] += 1
+                            ballInPlayerStates[team] = True
+                        elif not ballInBBox and ballInPlayerStates[team]:
+                            # ball just left the player's bounding box
+                            ballInPlayerStates[team] = False
+
+                        self.draw_triangle(frame, ballTracks[1]["bbox"], (255, 140, 0))
+
+                        # track ball hit positions
+                        if "ballHit" in ballTracks[1]:
+                            ballHitPositions.append(ballTracks[1]["ballHit"])
 
             frame = self.draw_player_hits(frame, playerHits)
 
-            annotatedFrames.append(frame)
+            # draw ball hits on the transformed table view
+            tableHitMap = viewTransformer.transform_frames(
+                frames[len(frames) - 1], ballHitPositions, averageTableBBox
+            )
 
-        # draw ball hits
-        annotatedFrames = self.detect_ball_hits(
-            annotatedFrames, tracks["ball"], averageTableBBox
-        )
+            # resize the table view while maintaining aspect ratio
+            height, width = frame.shape[:2]
+            aspectRatio = width / height
+            newWidth = 150
+            newHeight = int(newWidth / aspectRatio)
+            tableHitMapSmall = cv2.resize(tableHitMap, (newWidth, newHeight))
+
+            # overlay the resized table view in the corner of the frame
+            frame[0:newHeight, width - newWidth : width] = tableHitMapSmall
+
+            annotatedFrames.append(frame)
 
         return annotatedFrames

@@ -22,11 +22,6 @@ def assign_players_to_teams(frames, tracks):
 
         # for each player in the frame
         for playerId, player in players.items():
-
-            playerNum += 1
-            if playerNum == 3:
-                print(f"Frame {frameNum}: Player Count is {playerNum}")
-
             # assign player to a team based on their color
             team = teamAssigner.get_player_team(
                 frames[frameNum], player["bbox"], playerId

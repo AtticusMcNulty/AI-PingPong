@@ -13,9 +13,10 @@ This project involved training a YOLO model on a dataset designed for ping pong 
 ## Resources
 ### Videos/Websites
 Extracting BBoxes with YOLO: https://www.youtube.com/watch?v=QtsI0TnwDZs</br>
-Using KMeans clustering:</br>
+KMeans Image clustering:</br>
   https://www.w3schools.com/python/python_ml_k-means.asp</br>
   https://cierra-andaur.medium.com/using-k-means-clustering-for-image-segmentation-fe86c3b39bf4</br>
+Training Models with Google Colab: https://colab.research.google.com/github/tensorflow/swift/blob/main/docs/site/tutorials/model_training_walkthrough.ipynb</br>
 
 ### Documentation
 CV2: https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html</br>

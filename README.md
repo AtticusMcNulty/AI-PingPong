@@ -11,5 +11,14 @@ This project involved training a YOLO model on a dataset designed for ping pong 
 ## Video Showcase
 
 ## Resources
-### Videos
+### Videos/Websites
+Extracting BBoxes with YOLO: https://www.youtube.com/watch?v=QtsI0TnwDZs
+Using KMeans clustering:
+  https://www.w3schools.com/python/python_ml_k-means.asp
+  https://cierra-andaur.medium.com/using-k-means-clustering-for-image-segmentation-fe86c3b39bf4
+
 ### Documentation
+CV2: https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html
+Ultralytics/Yolo: https://docs.ultralytics.com/
+Supervision: https://supervision.roboflow.com/latest/detection/core/
+KMeans: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html

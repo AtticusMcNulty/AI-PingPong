@@ -1,4 +1,4 @@
-# AI Ping Pong
+# Ping Pong ML
 ## How I got this Idea
 I developed this project after my sophomore school year. Going into the summertime, I wanted to look more into how to actually use machine learning in a program. At the time both my dad and I were really into playing ping pong, and that gave me the idea to create something that would track a game between us. With the end goal of providing interesting and relevant information about the match.
 

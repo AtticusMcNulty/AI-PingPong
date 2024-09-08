@@ -15,16 +15,16 @@ The program begins by reading an input video and storing each of its frames in a
 <img width="523" alt="Screenshot 2024-09-07 at 6 41 02 PM" src="https://github.com/user-attachments/assets/c540e9e5-3c16-4391-be74-716a7b23089d">
 
 We then call the main detection function of our program "track_frames".</br>
-<img width="513" alt="Screenshot 2024-09-07 at 6 42 57 PM" src="https://github.com/user-attachments/assets/0e478837-4b55-4ec2-962b-43a2fed48c7b">
+<img width="513" alt="Screenshot 2024-09-07 at 6 42 57 PM" src="https://github.com/user-attachments/assets/0e478837-4b55-4ec2-962b-43a2fed48c7b"></br>
 From track_frames we call detect_frames which runs our model on each of the frames and stores the result.</br>
-<img width="514" alt="Screenshot 2024-09-07 at 6 48 48 PM" src="https://github.com/user-attachments/assets/53095da6-fea6-4151-9212-e2a5ab8a366b">
+<img width="514" alt="Screenshot 2024-09-07 at 6 48 48 PM" src="https://github.com/user-attachments/assets/53095da6-fea6-4151-9212-e2a5ab8a366b"></br>
 We then loop through the stored frames and format the results into an object. For table/net detections, we combine their detections to get the entire table/net (table detects with other tables, nets with other nets).</br>
-<img width="532" alt="Screenshot 2024-09-07 at 6 59 37 PM" src="https://github.com/user-attachments/assets/d952afbd-d923-43f0-a551-f1dd584b2476">
+<img width="532" alt="Screenshot 2024-09-07 at 6 59 37 PM" src="https://github.com/user-attachments/assets/d952afbd-d923-43f0-a551-f1dd584b2476"></br>
 For the ball, we simply store the ball detection each frame with the highest confidence.</br> 
-<img width="452" alt="Screenshot 2024-09-07 at 7 00 31 PM" src="https://github.com/user-attachments/assets/adc0ddfd-ece7-41b2-9ad2-853d4f2554a7">
-<img width="411" alt="Screenshot 2024-09-07 at 7 00 45 PM" src="https://github.com/user-attachments/assets/bbc03c79-ada9-4382-a351-d5416c5a7afc">
+<img width="452" alt="Screenshot 2024-09-07 at 7 00 31 PM" src="https://github.com/user-attachments/assets/adc0ddfd-ece7-41b2-9ad2-853d4f2554a7"></br>
+<img width="411" alt="Screenshot 2024-09-07 at 7 00 45 PM" src="https://github.com/user-attachments/assets/bbc03c79-ada9-4382-a351-d5416c5a7afc"></br>
 Finally, for players we apply a tracker using supervision which allows us to track the two players across the video.</br>
-<img width="503" alt="Screenshot 2024-09-07 at 7 01 10 PM" src="https://github.com/user-attachments/assets/bd928343-d95e-4e67-aeb4-79382451c0ad">
+<img width="503" alt="Screenshot 2024-09-07 at 7 01 10 PM" src="https://github.com/user-attachments/assets/bd928343-d95e-4e67-aeb4-79382451c0ad"></br>
 
 ## Resources
 ### Videos/Websites

@@ -18,13 +18,28 @@ We then call the main detection function of our program "track_frames".</br>
 <img width="513" alt="Screenshot 2024-09-07 at 6 42 57 PM" src="https://github.com/user-attachments/assets/0e478837-4b55-4ec2-962b-43a2fed48c7b"></br>
 From track_frames we call detect_frames which runs our model on each of the frames and stores the result.</br>
 <img width="514" alt="Screenshot 2024-09-07 at 6 48 48 PM" src="https://github.com/user-attachments/assets/53095da6-fea6-4151-9212-e2a5ab8a366b"></br>
-We then loop through the stored frames and format the results into an object. For table/net detections, we combine their detections to get the entire table/net (table detects with other tables, nets with other nets).</br>
+
+We then loop through the stored frames and format the results into an object.</br>
+For table/net detections, we combine their detections to get the entire table/net (table detects with other tables, nets with other nets).</br>
 <img width="532" alt="Screenshot 2024-09-07 at 6 59 37 PM" src="https://github.com/user-attachments/assets/d952afbd-d923-43f0-a551-f1dd584b2476"></br>
 For the ball, we simply store the ball detection each frame with the highest confidence.</br> 
 <img width="452" alt="Screenshot 2024-09-07 at 7 00 31 PM" src="https://github.com/user-attachments/assets/adc0ddfd-ece7-41b2-9ad2-853d4f2554a7"></br>
 <img width="411" alt="Screenshot 2024-09-07 at 7 00 45 PM" src="https://github.com/user-attachments/assets/bbc03c79-ada9-4382-a351-d5416c5a7afc"></br>
 Finally, for players we apply a tracker using supervision which allows us to track the two players across the video.</br>
 <img width="503" alt="Screenshot 2024-09-07 at 7 01 10 PM" src="https://github.com/user-attachments/assets/bd928343-d95e-4e67-aeb4-79382451c0ad"></br>
+
+Next we use the tracked player objects and call a function to assign the players to teams.</br>
+<img width="298" alt="Screenshot 2024-09-07 at 7 02 48 PM" src="https://github.com/user-attachments/assets/12a24b69-ca9a-4ffe-a91b-c8ab66f624f0"></br>
+We first call "assign_team_colors" to image cluster the players into teams based on their shirt colors.</br>
+<img width="352" alt="Screenshot 2024-09-07 at 7 06 10 PM" src="https://github.com/user-attachments/assets/cd4d3a11-7516-41f3-8e3d-295581acccdc"></br>
+This loops through each frame until it finds one in which we can detect both players, then calls "get_player_color" to get the shirt colors.</br>
+<img width="556" alt="Screenshot 2024-09-07 at 7 06 53 PM" src="https://github.com/user-attachments/assets/6359e947-fa7c-45a7-a21d-869d092d48d7"></br>
+Here we crop the image around the player bbox and get the top half (for the shirt). We then get cluster the image into 4 primary colors and return the KMeans model. From this clustering model we convert the image back to its original RGB format and get the color of the pixel in the center of the image.</br>
+<img width="594" alt="Screenshot 2024-09-07 at 7 09 56 PM" src="https://github.com/user-attachments/assets/9c2c2cf8-f27c-486b-b074-489ba70c4295"></br>
+We return to "assign_players_to_teams", looping over each player in each frame and calling a function to predict their team based on player's color.</br>
+<img width="472" alt="Screenshot 2024-09-07 at 7 13 53 PM" src="https://github.com/user-attachments/assets/8fc1ec89-7ded-4823-8df7-f6bcc24528fd"></br>
+
+
 
 ## Resources
 ### Videos/Websites

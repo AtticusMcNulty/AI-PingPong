@@ -48,12 +48,13 @@ In this step, we annotate each frame of the video with information such as playe
 NOTE: This function is complicated so I have just pulled the important bits, feel free to look more in depth in at the code.</br>
 <img width="511" alt="Screenshot 2024-09-07 at 7 19 13 PM" src="https://github.com/user-attachments/assets/952e8b69-5bff-4f04-b60e-4a2fe9e9c75f"></br>
 We start by calculating the average bounding boxes for the table and net across the frames. We loop through each frame and sum up the bounding boxes of detected tables and nets. The result is a single bounding box that is drawn on the video.</br>
-<img width="439" alt="Screenshot 2024-09-07 at 7 21 17 PM" src="https://github.com/user-attachments/assets/537e5b13-d479-4d38-a4a5-4d5a7d546796"></br>
+<img width="538" alt="Screenshot 2024-09-07 at 7 34 54 PM" src="https://github.com/user-attachments/assets/1ce3f6ae-8ba9-4a40-b9cd-d8d86f3af8eb"></br>
+The program then calls a function to detect when the ball hits the table by tracking its trajectory. It calculates ball velocities using previous positions and checks for a descent-to-ascent transition within the table's bounding box. To improve accuracy, I also incorporated cooldown timers, positional tolerance, and averages, reducing false positives and missed hits.</br>
+<img width="439" alt="Screenshot 2024-09-07 at 7 21 17 PM" src="https://github.com/user-attachments/assets/537e5b13-d479-4d38-a4a5-4d5a7d546796"></br><img width="561" alt="Screenshot 2024-09-07 at 7 36 16 PM" src="https://github.com/user-attachments/assets/d48ee3b8-8fd0-4c90-9da3-5ee8db518fd7"></br>
 Each frame is further annotated by tracking the ball's movement and its interactions with the players. The program checks whether the ball's center is inside a player's bounding box. If true, it counts that as a "hit" for the corresponding player.</br>
 <img width="495" alt="Screenshot 2024-09-07 at 7 28 04 PM" src="https://github.com/user-attachments/assets/46586721-5094-445e-a27d-67e266cdfb01"></br>
 <img width="360" alt="Screenshot 2024-09-07 at 7 29 51 PM" src="https://github.com/user-attachments/assets/db67f720-73f3-4931-90eb-c34e1d2be132"></br>
-The program also detects when the ball hits the table by tracking its trajectory. It checks if the ball was descending, then ascending, and if this transition happens inside the table's bounding box. When a table hit is detected, the ball's position is marked on the video, and a counter is updated 
-to reflect the total number of hits.</br>
+When a table hit is detected, the ball's position is marked on the video, and a counter is updated to reflect the total number of hits.</br>
 <img width="468" alt="Screenshot 2024-09-07 at 7 30 22 PM" src="https://github.com/user-attachments/assets/787050e7-1dec-4f7c-bed7-dff40e423bde"></br>
 <img width="750" alt="Screenshot 2024-09-07 at 7 30 54 PM" src="https://github.com/user-attachments/assets/ed149b0b-3576-4e0b-8892-6961f8db1f26"></br>
 
